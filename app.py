@@ -1,8 +1,6 @@
 import json
 import pandas as pd
 from flask import Flask, render_template, jsonify, request
-import json
-from flask import Flask, jsonify, request
 
 from P7_Scoring.input import load_data, load_model
 
@@ -17,28 +15,45 @@ model = load_model()
 
 @app.route('/')
 def hello():
-    return "<h1>ASK</h1><p>Hello, World! this application running on port=8000</p>"
+    return "<h1>P7 FLASK API launched</h1><p>Database and model loaded... </p>"
 
 
-@app.route('/client_data', methods=['GET'])
-def get_data():
-    return jsonify(data)
+@app.route('/client', methods=['GET'])
+def get_client_list():
+    # return json.loads(pd.Series(data.index.sort_values()).to_json())
+    return jsonify(pd.Series(data.index.sort_values()).to_dict())
+
+
+#
+# @app.route('/client_data', methods=['GET'])
+# def get_data_all():
+#    return jsonify(data)
+
 
 @app.route('/client_data/<int:id>', methods=['GET'])
 def get_data_by_id(id: int):
-    data = get_data(id)
-    if data is None:
+    if verif_client_id(id):
+        client_data = json.loads(data.loc[data.index == id].to_json())
+        #return jsonify({'data': client_data})
+        return jsonify(client_data)
+    else:
         return jsonify({'error': 'Client does not exist'}), 404
-    return jsonify(data)
-
-def get_data(id):
-    return next(data.loc[data.index == id]), None)
 
 
+def verif_client_id(client_id):
+    if client_id in data.index:
+        return True
+    else:
+        return False
 
-@app.route('/client_score', methods=['GET'])
-def get_score():
-    return jsonify(employees)
+
+@app.route('/client_score/<int:id>', methods=['GET'])
+def get_score(id: int):
+    if verif_client_id(id):
+        score = model.predict_proba(data.loc[data.index == id].drop(columns=['TARGET']))
+        return jsonify(round(score[0][1]*100,2))
+    else:
+        return jsonify({'error': 'Client does not exist'}), 404
 
 
 @app.route('/dashboard/')

@@ -1,0 +1,247 @@
+import streamlit as st
+
+import streamlit as st
+import requests
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+import numpy as np
+
+
+def st_step_update(x):
+    st.session_state['step'] = x
+
+
+
+def st_nb_feat_update():
+    st.write('before on_click', st.session_state['nb_feat'])
+    if st.session_state['select_nb_feat']:
+        st.session_state['nb_feat'] = st.session_state['select_nb_feat']
+    st.write('after on_click', st.session_state['nb_feat'])
+
+
+def main3():
+    st.title('Streamlit Frontend for P7 API')
+
+    param_init = requests.get('http://localhost:8000/init').json()
+    list_id = param_init['client_list']
+    list_feat = param_init['feature_list']
+    business_threshold = param_init['business_threshold']
+
+    if 'step' not in st.session_state:
+        st.session_state['step'] = 0
+    if 'nb_feat' not in st.session_state:
+        st.session_state['nb_feat'] = len(list_feat)
+    if 'feat' not in st.session_state:
+        st.session_state['feat'] = list_feat
+
+    # Customer id selection by user
+    cust_id = st.sidebar.selectbox('Select client id to focus on', list_id, index=None,
+                                   on_change=st_step_update, args=(0,))
+
+    if cust_id:
+        if st.session_state['step'] == 0:
+            st.write(f'Client {str(cust_id)} selected:')
+
+        # ------- Client score result
+        if st.sidebar.button("Client Score Result", on_click=st_step_update, args=(1,)) or st.session_state['step'] == 1:
+            st.header('Client score result', divider='rainbow')
+            # Retrieve score information
+            st.write('Score result : ')
+            score_client = requests.get(f'http://localhost:8000/client_score/{cust_id}').json()
+            st.write(f"Probability : {score_client['score']}%")
+            st.write(f"business_threshold : {business_threshold}%")
+
+            if score_client['score'] > business_threshold:
+                display_colored_box("`Rejected", background_color="red", border_color="darkred",
+                                    margin=0)
+            else:
+                display_colored_box(f"<span style='font-size: 24px; font-weight: bold;'> Accepted <span>  \n\n Probability of having risk: {score_client['score']}% <br> (vs business_threshold: {business_threshold}%)", background_color="green", border_color="darkgreen",
+                                    margin=0)
+
+        # ------- Client score explanation
+        if st.sidebar.button("Client Score Explanation", on_click=st_step_update, args=(2,)) or st.session_state['step'] == 2:
+            st.header('Client score explanation', divider='rainbow')
+
+            st.write('avant', st.session_state['nb_feat'])
+            # nb_feat = st.number_input("Number of features to manage", value=None, max_value=20, placeholder="Type a number...")
+            st.session_state['nb_feat'] = st.selectbox('Number of features to manage', list(range(len(list_feat)+1)),
+                                                       index=st.session_state['nb_feat'],
+                                                       on_change=st_nb_feat_update,
+                                                       key='select_nb_feat')
+            st.write('apres', st.session_state['nb_feat'])
+            # Retrieve data client explanation
+            st.write('Score result explanation : ')
+            resp_explain = requests.get(f"http://localhost:8000/client_explain/?id={cust_id}&nb_feat={st.session_state['nb_feat']}").json()
+            st.components.v1.html(resp_explain['graph'], width=1000, height=800, scrolling=False)
+            st.session_state['feat'] = resp_explain['feat']
+
+        # ------- Features distribution
+        if st.sidebar.button("Features Distribution", on_click=st_step_update, args=(3,)) or st.session_state['step'] == 3:
+            st.header('Features distribution', divider='rainbow')
+            feat_name = st.selectbox('Select feature to focus on', st.session_state['feat'], index=None)
+
+            # Retrieve Features distribution
+            st.write('feat_name : ', feat_name)
+            if feat_name:
+                features_dist = requests.get(f'http://localhost:8000/features_dist/?id={cust_id}&feat={feat_name}').text
+                st.components.v1.html(features_dist, width=1000, height=400, scrolling=True)
+
+        # ------- Client data
+        if st.sidebar.button("Client Data", on_click=st_step_update, args=(4,)) or st.session_state['step'] == 4:
+            st.header('Client data', divider='rainbow')
+            # Retrieve data client information
+            st.write('Data client : ')
+            data_client = requests.get(f'http://localhost:8000/client_data/{cust_id}').json()
+            st.dataframe(data_client['data'])
+
+    else:
+        st.header('Welcome')
+        st.write('Select a client')
+
+
+def display_colored_box(text, background_color, border_color, margin):
+    styled_text = f'<div style="background-color: {background_color}; border: 2px solid {border_color}; padding: 30px; margin: {margin}px; text-align: center; fontsize: 50">{text}</div>'
+    st.markdown(styled_text, unsafe_allow_html=True)
+
+
+if __name__ == '__main__':
+    main3()
+    #display_colored_box("Texte dans un cadre vert", background_color="green", border_color="darkgreen", margin=100)
+    #display_colored_box("Texte dans un cadre rouge", background_color="red", border_color="darkred", margin=70)
+
+
+
+
+def main1():
+    st.title('Streamlit Frontend for P7 API')
+    # Retrieve list id customer
+    list_id = requests.get('http://localhost:8000/client').json()
+    # Customer id selection by user
+    # st.sidebar.write(f"Client selection :")
+    cust_id = st.sidebar.selectbox('Select client id to focus on ', list_id['list'], index=None)
+
+    if cust_id:
+        # ------- Client score result
+        st.header('Client score result', divider='rainbow')
+        st.write('Client id selected:', str(cust_id))
+        # Retrieve score information
+        st.write('Score result : ')
+        score_client = requests.get(f'http://localhost:8000/client_score/{cust_id}').json()
+        st.write(f"Probability : {score_client['score']}%")
+
+        # ------- Client score explanation
+        st.header('Client score explanation', divider='rainbow')
+        nb_feat = st.sidebar.number_input("Number of features to manage", value=None, max_value=20, placeholder="Type a number...")
+        # Retrieve data client explanation
+        st.write('Score result explanation : ')
+        data_explain = requests.get(f'http://localhost:8000/client_explain/{cust_id}').text
+        st.components.v1.html(data_explain, width=1000, height=800, scrolling=False)
+        st.write(cust_id, nb_feat)
+        data_explain2 = requests.get(f'http://localhost:8000/client_explain2/?id={cust_id}&nb_feat={nb_feat}').text
+        st.components.v1.html(data_explain2, width=1000, height=400, scrolling=True)
+
+        data_explain3 = requests.get(f'http://localhost:8000/client_explain3/?id={cust_id}&nb_feat={nb_feat}').json()
+        list_feat = data_explain3['feat']
+        fig, ax = plt.subplots()
+        ax = sns.barplot(x=data_explain3['value'], y=data_explain3['feat'])
+        plt.title('Local features importance')
+        st.pyplot(fig)
+
+        # ------- Features distribution
+        st.header('Features distribution', divider='rainbow')
+        feat_name = st.selectbox('Select feature to focus on ', data_explain3['feat'], index=None)
+
+        # Retrieve Features distribution
+        st.write('feat_name : ', feat_name)
+        if feat_name:
+            features_dist = requests.get(f'http://localhost:8000/features_dist/?id={cust_id}&feat={feat_name}').text # json()
+            st.components.v1.html(features_dist, width=1000, height=400, scrolling=True)
+            '''
+            fig = plot_feature_dist(feat_name=feat_name,
+                              feature=features_dist['feature'],
+                              target=features_dist['target'],
+                              num_bins=features_dist['num_bins'],
+                              bin_centers=features_dist['bin_centers'],
+                              bin_proportions=features_dist['bin_proportions'],
+                              client_pos=features_dist['client_pos'])
+            '''
+            #st.write(features_dist)
+
+        # ------- Client data
+        st.header('Client data', divider='rainbow')
+        # Retrieve data client information
+        st.write('Data client : ')
+        data_client = requests.get(f'http://localhost:8000/client_data/{cust_id}').json()
+        st.dataframe(data_client['data'])
+
+    else:
+        st.write('No client selected')
+
+
+
+def main2():
+    st.title('Streamlit Frontend for P7 API')
+    # Retrieve list id customer
+    list_id = requests.get('http://localhost:8000/client').json()
+    # Customer id selection by user
+    # st.sidebar.write(f"Client selection :")
+    cust_id = st.sidebar.selectbox('Select client id to focus on ', list_id['list'], index=None)
+
+    if cust_id:
+        # ------- Client score result
+        st.header('Client score result', divider='rainbow')
+        st.write('Client id selected:', str(cust_id))
+        # Retrieve score information
+        st.write('Score result : ')
+        score_client = requests.get(f'http://localhost:8000/client_score/{cust_id}').json()
+        st.write(f"Probability : {score_client['score']}%")
+
+        # ------- Client score explanation
+        st.header('Client score explanation', divider='rainbow')
+        nb_feat = st.sidebar.number_input("Number of features to manage", value=None, max_value=20, placeholder="Type a number...")
+        # Retrieve data client explanation
+        st.write('Score result explanation : ')
+        data_explain = requests.get(f'http://localhost:8000/client_explain/{cust_id}').text
+        st.components.v1.html(data_explain, width=1000, height=800, scrolling=False)
+        st.write(cust_id, nb_feat)
+        data_explain2 = requests.get(f'http://localhost:8000/client_explain2/?id={cust_id}&nb_feat={nb_feat}').text
+        st.components.v1.html(data_explain2, width=1000, height=400, scrolling=True)
+
+        data_explain3 = requests.get(f'http://localhost:8000/client_explain3/?id={cust_id}&nb_feat={nb_feat}').json()
+        list_feat = data_explain3['feat']
+        fig, ax = plt.subplots()
+        ax = sns.barplot(x=data_explain3['value'], y=data_explain3['feat'])
+        plt.title('Local features importance')
+        st.pyplot(fig)
+
+        # ------- Features distribution
+        st.header('Features distribution', divider='rainbow')
+        feat_name = st.selectbox('Select feature to focus on ', data_explain3['feat'], index=None)
+
+        # Retrieve Features distribution
+        st.write('feat_name : ', feat_name)
+        if feat_name:
+            features_dist = requests.get(f'http://localhost:8000/features_dist/?id={cust_id}&feat={feat_name}').text # json()
+            st.components.v1.html(features_dist, width=1000, height=400, scrolling=True)
+            '''
+            fig = plot_feature_dist(feat_name=feat_name,
+                              feature=features_dist['feature'],
+                              target=features_dist['target'],
+                              num_bins=features_dist['num_bins'],
+                              bin_centers=features_dist['bin_centers'],
+                              bin_proportions=features_dist['bin_proportions'],
+                              client_pos=features_dist['client_pos'])
+            '''
+            #st.write(features_dist)
+
+        # ------- Client data
+        st.header('Client data', divider='rainbow')
+        # Retrieve data client information
+        st.write('Data client : ')
+        data_client = requests.get(f'http://localhost:8000/client_data/{cust_id}').json()
+        st.dataframe(data_client['data'])
+
+    else:
+        st.write('No client selected')
+

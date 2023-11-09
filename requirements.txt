@@ -6,3 +6,4 @@ scipy==1.11.2
 seaborn==0.12.2
 flask==2.2.2
 pytest==7.4.0
+Werkzeug==2.2.3

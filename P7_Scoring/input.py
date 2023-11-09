@@ -10,8 +10,6 @@ def load_data(path="input/app_train_final_20_20K.csv"):
     return data
 
 
-def load_model(path="input/modele_LR_business_cost.pickle"):
-#def load_model(path="input/modele_LR_business_cost.pickle"):
+def load_model(path="input/modele_LR_business_cost_new_pipe.pickle"):
 #def load_model(path="input/modele_LR_business_score.pickle"):
-
     return pickle.load(open(path, 'rb'))

@@ -13,21 +13,6 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 matplotlib.use('Agg')
 
-import pickle
-# from P7_Scoring.custom_metrics import business_income
-# from P7_Scoring.custom_metrics import business_cost
-
-
-def load_data(path="input/app_train_final_20_20K.csv"):
-    data = pd.read_csv(path, sep=',', index_col='SK_ID_CURR', low_memory=False)
-    return data
-
-
-def load_model(path="input/modele_LR_business_cost.pickle"):
-    return pickle.load(open(path, 'rb'))
-
-
-
 app = Flask(__name__)
 app.config["DEBUG"] = True
 
@@ -70,7 +55,7 @@ def verif_client_id(client_id):
 def get_score(id: int):
     if verif_client_id(id):
         score = model.predict_proba(data.loc[data.index == id])
-        return {'score': round(score[0][1] * 100, 2)}
+        return jsonify({'score': round(score[0][1] * 100, 2)})
     else:
         return jsonify({'error': 'Client does not exist'}), 404
 
@@ -94,8 +79,6 @@ def get_explanation():  # id: int, nb_feature=None
         expl_list = explanation.as_list()
         explanation_feature = [expl_list[i][0] for i in range(len(expl_list))]
         explanation_value = [expl_list[i][1] * 100 for i in range(len(expl_list))]
-        print(explanation_feature)
-        print(explanation_value)
 
         fig = Figure()
         ax = fig.subplots()
@@ -118,7 +101,7 @@ def get_explanation():  # id: int, nb_feature=None
 def get_model_importance():  # id: int, nb_feature=None
     nb_feature = request.args.get('nb_feat', type=int)
     if nb_feature is None: nb_feature = len(data.columns)
-    importance = pd.Series(model.best_estimator_['reg'].coef_[0], index=data.columns)
+    importance = pd.Series(model['reg'].coef_[0], index=data.columns)
     importance = importance.sort_values(ascending=False, key=abs)[:nb_feature]
 
     fig = Figure()
@@ -131,7 +114,7 @@ def get_model_importance():  # id: int, nb_feature=None
     fig.savefig(buf, format="png")
     # Embed the result in the html output.
     graph = base64.b64encode(buf.getbuffer()).decode("ascii")
-    return f"<img src='data:image/png;base64,{graph}'/>"
+    return {'graph': f"<img src='data:image/png;base64,{graph}'/>"}
 
 
 @app.route('/features_dist/', methods=['GET'])
@@ -188,11 +171,3 @@ def get_features():
     importance = pd.Series(model.best_estimator_['reg'].coef_[0], index=data.columns)
     return {'list': list(model.best_estimator_['reg'].coef_[0])}
 
-@app.route('/')
-def hello():
-    return "<h1>P7 FLASK API launched</h1><p>Database and model loaded... </p>"
-
-@app.route('/client', methods=['GET'])
-def get_client_list():
-    return {'list': list(data.index.sort_values()[:]),
-            'param': param}

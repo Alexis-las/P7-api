@@ -1,27 +1,13 @@
 import pytest
 from app import app
 
-import json
-import pandas as pd
-from flask import Flask, request, jsonify, make_response, render_template
-from P7_Scoring.input import load_data, load_model
-from P7_Scoring.custom_metrics import business_income
-from P7_Scoring.custom_metrics import business_cost
-from lime import lime_tabular
-import base64
-from io import BytesIO
-import matplotlib
-from matplotlib.figure import Figure
-from matplotlib import pyplot as plt
-import seaborn as sns
-import pickle
-matplotlib.use('Agg')
 
 @pytest.fixture
 def client():
     app.config['TESTING'] = True
     with app.test_client() as client:
         yield client
+
 
 def test_init_run(client):
     response = client.get('/init')
@@ -31,11 +17,17 @@ def test_init_run(client):
     assert 'feature_list' in data
     assert 'business_threshold' in data
 
-def test_get_data_by_id(client):
-    response = client.get('/client_data/1')
+
+test_data = [(267240), (412292), (111788)]
+
+
+@pytest.mark.parametrize("SK_ID_CURR", test_data)
+def test_get_data_by_id(SK_ID_CURR, client):
+    response = client.get(f'/client_data/{SK_ID_CURR}')
     assert response.status_code == 200
     data = response.get_json()
     assert 'data' in data
+
 
 def test_get_data_by_invalid_id(client):
     response = client.get('/client_data/9999')
@@ -43,7 +35,19 @@ def test_get_data_by_invalid_id(client):
     data = response.get_json()
     assert 'error' in data
 
-# Ajoutez d'autres tests pour les autres routes ici
 
-if __name__ == '__main__':
-    pytest.main()
+test_score = [
+    (232380, 58.00),
+    (180439, 47.76),
+    (200709, 51.75)
+    ]
+
+
+@pytest.mark.parametrize("SK_ID_CURR, expected", test_score)
+def test_get_score(SK_ID_CURR, expected, client):
+    response = client.get(f'/client_score/{SK_ID_CURR}')
+    assert response.status_code == 200
+    data = response.get_json()
+    assert 'score' in data
+    assert data['score'] == expected
+

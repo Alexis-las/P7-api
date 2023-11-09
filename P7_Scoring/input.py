@@ -5,10 +5,18 @@ import os
 # from P7_Scoring.custom_metrics import business_cost
 
 
-def load_data(path="input/app_train_final.csv"):
+def load_data(filename="app_train_final.csv"):
     # Import data
-    full_path = os.path.abspath(path)
-    data = pd.read_csv(full_path, sep=',', index_col='SK_ID_CURR', low_memory=False)
+    base_path = os.path.abspath(os.getcwd())
+    # Concatène le chemin relatif du fichier
+    path = os.path.join(base_path, "input", filename)
+    data = pd.read_csv(path, sep=',', index_col='SK_ID_CURR', low_memory=False)
+    return data
+
+
+def load_data2(path="input/app_train_final.csv"):
+    # Import data
+    data = pd.read_csv(path, sep=',', index_col='SK_ID_CURR', low_memory=False)
     return data
 
 

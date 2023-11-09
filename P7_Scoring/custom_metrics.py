@@ -3,7 +3,7 @@ from sklearn.metrics import confusion_matrix
 
 
 def eval_classif_metrics(actual, pred, pred_proba, threshold=None):
-    '''
+    """
     Calcule les métriques de classification composé de :
         auc,
         accuracy,
@@ -16,7 +16,7 @@ def eval_classif_metrics(actual, pred, pred_proba, threshold=None):
         pred_proba : predict probability
         threshold : threshold to determine predict class based on predict probability
                     If filled, 'pred' is not used but replaced by np.where('pred_proba' >= threshold, 1, 0)
-    '''
+    """
     if pred_proba is None: pred_proba = pred
     if threshold: pred = np.where(pred_proba >= threshold, 1, 0)
 

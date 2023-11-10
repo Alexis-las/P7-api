@@ -7,4 +7,4 @@ seaborn==0.12.2
 flask==2.2.2
 pytest==7.4.0
 Werkzeug==2.2.3
-imblearn==0.10.1
+imbalanced-learn==0.10.1

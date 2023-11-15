@@ -81,7 +81,6 @@ def main():
             feat_name = st.selectbox('Select feature to focus on', st.session_state['feat'], index=None)
 
             # Retrieve Features distribution
-            st.write('feat_name : ', feat_name)
             if feat_name:
                 features_dist = requests.get(f'{URL_name}/features_dist/?id={cust_id}&feat={feat_name}').text
                 st.components.v1.html(features_dist, width=1000, height=400, scrolling=True)

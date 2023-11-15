@@ -9,10 +9,8 @@ def st_step_update(x):
 
 
 def st_nb_feat_update():
-    st.write('before on_click', st.session_state['nb_feat'])
     if st.session_state['select_nb_feat']:
         st.session_state['nb_feat'] = st.session_state['select_nb_feat']
-    st.write('after on_click', st.session_state['nb_feat'])
 
 
 def main():
@@ -50,8 +48,8 @@ def main():
             # Retrieve score information
             st.write('Score result : ')
             score_client = requests.get(f'{URL_name}/client_score/{cust_id}').json()
-            st.write(f"Probability : {score_client['score']}%")
-            st.write(f"business_threshold : {business_threshold}%")
+            # st.write(f"Probability : {score_client['score']}%")
+            # st.write(f"business_threshold : {business_threshold}%")
 
             if score_client['score'] > business_threshold:
                 display_colored_box(

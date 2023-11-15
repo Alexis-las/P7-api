@@ -1,6 +1,8 @@
 import streamlit as st
 import requests
 
+# URL_name = 'http://localhost:8000' # if in local run
+URL_name = 'https://alexis-p7-api.onrender.com' # if deployed
 
 def st_step_update(x):
     st.session_state['step'] = x
@@ -16,7 +18,7 @@ def st_nb_feat_update():
 def main():
     st.title('Streamlit Frontend for P7 API')
 
-    param_init = requests.get('http://localhost:8000/init').json()
+    param_init = requests.get(f'{URL_name}/init').json()
     list_id = param_init['client_list']
     list_feat = param_init['feature_list']
     business_threshold = param_init['business_threshold']
@@ -47,7 +49,7 @@ def main():
             st.header('Client score result', divider='rainbow')
             # Retrieve score information
             st.write('Score result : ')
-            score_client = requests.get(f'http://localhost:8000/client_score/{cust_id}').json()
+            score_client = requests.get(f'{URL_name}/client_score/{cust_id}').json()
             st.write(f"Probability : {score_client['score']}%")
             st.write(f"business_threshold : {business_threshold}%")
 
@@ -70,7 +72,7 @@ def main():
             # Retrieve data client explanation
             st.write('Score result explanation : ')
             resp_explain = requests.get(
-                f"http://localhost:8000/client_explain/?id={cust_id}&nb_feat={st.session_state['nb_feat']}").json()
+                f"{URL_name}/client_explain/?id={cust_id}&nb_feat={st.session_state['nb_feat']}").json()
             st.components.v1.html(resp_explain['graph'], width=1000, height=800, scrolling=False)
             st.session_state['feat'] = resp_explain['feat']
 
@@ -83,7 +85,7 @@ def main():
             # Retrieve Features distribution
             st.write('feat_name : ', feat_name)
             if feat_name:
-                features_dist = requests.get(f'http://localhost:8000/features_dist/?id={cust_id}&feat={feat_name}').text
+                features_dist = requests.get(f'{URL_name}/features_dist/?id={cust_id}&feat={feat_name}').text
                 st.components.v1.html(features_dist, width=1000, height=400, scrolling=True)
 
         # ------- Client data
@@ -91,7 +93,7 @@ def main():
             st.header('Client data', divider='rainbow')
             # Retrieve data client information
             st.write('Data client collected : ')
-            data_client = requests.get(f'http://localhost:8000/client_data/{cust_id}').json()
+            data_client = requests.get(f'{URL_name}/client_data/{cust_id}').json()
             st.dataframe(data_client['data'])
 
         # ------- Model explanation
@@ -99,7 +101,7 @@ def main():
             st.header('Model explanation', divider='rainbow')
             # Retrieve data client explanation
             resp_explain = requests.get(
-                f"http://localhost:8000/model_importance/?nb_feat={st.session_state['nb_feat']}").json()
+                f"{URL_name}/model_importance/?nb_feat={st.session_state['nb_feat']}").json()
             st.components.v1.html(resp_explain['graph'], width=1000, height=800, scrolling=False)
 
     else:

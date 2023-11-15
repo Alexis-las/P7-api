@@ -27,6 +27,11 @@ data.drop(columns=['TARGET'], inplace=True)
 model = load_model()
 
 
+@app.route('/')
+def hello():
+    return "<h1>P7 FLASK API launched</h1><p>Database and model loaded... </p>"
+
+
 @app.route('/init', methods=['GET'])
 def init_run():
     return {'client_list': list(data.index.sort_values()[:]),

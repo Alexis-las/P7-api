@@ -1,4 +1,21 @@
 P7 : Implémentez un modèle de scoring
 
-La société financière "Prêt à dépenser", qui propose des crédits à la consommation pour des personnes ayant peu ou pas du tout d'historique de prêt, souhaite mettre en œuvre un outil de “scoring crédit” pour calculer la probabilité qu’un client rembourse son crédit, puis classifie la demande en crédit accordé ou refusé. Elle souhaite donc développer un algorithme de classification en s’appuyant sur des sources de données variées (données comportementales, données provenant d'autres institutions financières, etc.).
+L’entreprise "Prêt à dépenser", qui propose des crédits à la consommation pour des personnes ayant peu ou pas du tout d'historique de prêt, souhaite mettre en œuvre un outil de “scoring crédit” pour calculer la probabilité qu’un client rembourse son crédit, puis classifie la demande en crédit accordé ou refusé.
+Elle souhaite donc développer un algorithme de classification en s’appuyant sur des sources de données variées (données comportementales, données provenant d'autres institutions financières, etc.).
 
+De plus, les chargés de relation client ont fait remonter le fait que les clients sont de plus en plus demandeurs de transparence vis-à-vis des décisions d’octroi de crédit. Cette demande de transparence des clients va tout à fait dans le sens des valeurs que l’entreprise veut incarner.
+Prêt à dépenser décide donc de développer un dashboard interactif pour que les chargés de relation client puissent à la fois expliquer de façon la plus transparente possible les décisions d’octroi de crédit, mais également permettre à leurs clients de disposer de leurs informations personnelles et de les explorer facilement.
+
+
+L’architecture retenue pour la mise en oeuvre du dashboard est la suivante :
+
+Un API backend (app.py) dans lequel est logée toute l’intelligence fonctionnelle permettant la récupération et le calcul des données souhaitées.
+-	Développement réalisé avec Flask
+-	Mis en production sur Render, accessible via ce lien  https://alexis-p7-api.onrender.com
+
+Un Dashboard frontend (frontend.py) pour simplement restituer les informations produites, avec une interface simple d’utilisation
+-	Développement réalisé avec StreamLit
+-	Mis en production sur StreamLit, accessible via ce lien https://alexis-p7-api.streamlit.app
+
+Tout le code, mis en œuvre sous git, est également disponible sur github
+-   Accessible via ce lien https://github.com/Alexis-las/P7-api
